@@ -1,6 +1,7 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
+  color: #1f2933; /* 🔥 dark text everywhere by default */
 }
 
 .login-root {
@@ -25,6 +26,7 @@ body {
 .page-title {
   margin-top: 0;
   margin-bottom: 16px;
+  color: #111827; /* darker title */
 }
 
 .login-sections {
@@ -45,11 +47,13 @@ body {
 
 .section-title {
   margin: 0 0 8px 0;
+  color: #1f2937; /* darker section headings */
 }
 
 .field-label {
   font-size: 0.95rem;
   font-weight: 600;
+  color: #374151; /* medium-dark label */
 }
 
 .input {
@@ -57,6 +61,12 @@ body {
   border: 1px solid #ccc;
   border-radius: 8px;
   font-size: 1rem;
+  color: #111827; /* 🔥 dark input text */
+  background: #ffffff;
+}
+
+.input::placeholder {
+  color: #9ca3af; /* subtle placeholder */
 }
 
 .primary-btn {
@@ -76,13 +86,13 @@ body {
 
 .status-ok {
   margin-top: 20px;
-  color: green;
+  color: #166534; /* darker green */
   font-weight: 600;
 }
 
 .status-bad {
   margin-top: 20px;
-  color: crimson;
+  color: #b91c1c; /* darker red */
   font-weight: 600;
 }
 

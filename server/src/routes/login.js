@@ -49,4 +49,50 @@ router.post("/employee", async (req, res) => {
   }
 });
 
+router.post("/manager", async (req, res) => {
+  const { employeeId, password } = req.body;
+
+  try {
+    const result = await pool.query(
+      "SELECT employeeid, employeename, ismanager FROM employee WHERE employeeid = $1",
+      [employeeId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({
+        success: false,
+        error: "Invalid manager ID",
+      });
+    }
+
+    const user = result.rows[0];
+
+    if (!user.ismanager) {
+      return res.status(403).json({
+        success: false,
+        error: "This employee is not a manager",
+      });
+    }
+
+    if (password !== "managerpass") {
+      return res.status(401).json({
+        success: false,
+        error: "Incorrect manager password",
+      });
+    }
+
+    return res.json({
+      success: true,
+      name: user.employeename,
+      message: `Manager login successful: Welcome, ${user.employeename}!`,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      success: false,
+      error: "Database error",
+    });
+  }
+});
+
 module.exports = router;
