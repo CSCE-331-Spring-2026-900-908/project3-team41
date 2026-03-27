@@ -1,13 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
-
-function CashierPage() {
-  return <h1>Cashier Page</h1>;
-}
-
-function DashboardPage() {
-  return <h1>Manager Dashboard</h1>;
-}
+import CashierPage from "./pages/cashier/CashierPage";
+import AnalyticsPage from "./pages/manager/AnalyticsPage";
 
 export default function App() {
   return (
@@ -15,7 +9,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path="/cashier" element={<CashierPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/manager" element={<AnalyticsPage />} />
       </Routes>
     </BrowserRouter>
   );

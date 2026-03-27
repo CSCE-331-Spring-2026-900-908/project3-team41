@@ -102,7 +102,7 @@ export default function LoginPage() {
       localStorage.setItem("role", "manager");
 
       // Equivalent to manager.showUI(employeeID)
-      navigate("/dashboard");
+      navigate("/manager");
     } catch (err) {
       setStatus("Server error occurred.");
       setStatusType("bad");
