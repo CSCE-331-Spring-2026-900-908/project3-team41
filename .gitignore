@@ -45,3 +45,8 @@ db.properties
 target/
 
 *.lst
+
+# node modules
+node_modules/
+.env
+dist/
