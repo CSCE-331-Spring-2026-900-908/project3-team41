@@ -1,22 +1,12 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import LoginPage from "./pages/LoginPage";
+const express = require("express");
+const cors = require("cors");
+const loginRoutes = require("./routes/login");
 
-function CashierPage() {
-  return <h1>Cashier Page</h1>;
-}
+const app = express();
 
-function DashboardPage() {
-  return <h1>Manager Dashboard</h1>;
-}
+app.use(cors());
+app.use(express.json());
 
-export default function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LoginPage />} />
-        <Route path="/cashier" element={<CashierPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-      </Routes>
-    </BrowserRouter>
-  );
-}
+app.use("/api/login", loginRoutes);
+
+module.exports = app;

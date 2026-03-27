@@ -1,12 +1,16 @@
+require("dotenv").config();
 const { Pool } = require("pg");
 
 const pool = new Pool({
-  host: "csce-315-db.engr.tamu.edu",
-  port: 5432,
-  database: "team_41_db",
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  database: process.env.DB_NAME,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  ssl: false
+
+  ssl: {
+    rejectUnauthorized: false, 
+  },
 });
 
 module.exports = pool;
