@@ -56,7 +56,7 @@ export default function LoginPage() {
 
       // Equivalent to loading GUI_Cashier.fxml
       navigate("/cashier");
-    } catch (err) {
+    } catch {
       setStatus("Server error occurred.");
       setStatusType("bad");
     }
@@ -103,7 +103,7 @@ export default function LoginPage() {
 
       // Equivalent to manager.showUI(employeeID)
       navigate("/manager");
-    } catch (err) {
+    } catch {
       setStatus("Server error occurred.");
       setStatusType("bad");
     }
