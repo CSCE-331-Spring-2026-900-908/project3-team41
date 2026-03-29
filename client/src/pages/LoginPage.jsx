@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/LoginPage.css";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
 export default function LoginPage() {
   const navigate = useNavigate();
 
@@ -30,7 +32,7 @@ export default function LoginPage() {
     }
 
     try {
-      const res = await fetch("http://localhost:3001/api/login/employee", {
+      const res = await fetch(`${API_URL}/api/login/employee`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -49,16 +51,15 @@ export default function LoginPage() {
       setStatus(data.message);
       setStatusType("ok");
 
-      // Store info if needed
       localStorage.setItem("employeeId", String(parsedId));
       localStorage.setItem("employeeName", data.name || "");
       localStorage.setItem("role", "employee");
 
-      // Equivalent to loading GUI_Cashier.fxml
       navigate("/cashier");
     } catch (err) {
       setStatus("Server error occurred.");
       setStatusType("bad");
+      console.error(err);
     }
   }
 
@@ -75,7 +76,7 @@ export default function LoginPage() {
     }
 
     try {
-      const res = await fetch("http://localhost:3001/api/login/manager", {
+      const res = await fetch(`${API_URL}/api/login/manager`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -101,11 +102,11 @@ export default function LoginPage() {
       localStorage.setItem("employeeName", data.name || "");
       localStorage.setItem("role", "manager");
 
-      // Equivalent to manager.showUI(employeeID)
       navigate("/manager");
     } catch (err) {
       setStatus("Server error occurred.");
       setStatusType("bad");
+      console.error(err);
     }
   }
 
