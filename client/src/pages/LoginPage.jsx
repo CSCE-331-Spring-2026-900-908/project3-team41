@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/LoginPage.css";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:3001").replace(/\/+$/, "");
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -56,7 +56,7 @@ export default function LoginPage() {
       localStorage.setItem("role", "employee");
 
       navigate("/cashier");
-    } catch {
+    } catch (err) {
       setStatus("Server error occurred.");
       setStatusType("bad");
       console.error(err);
@@ -103,7 +103,7 @@ export default function LoginPage() {
       localStorage.setItem("role", "manager");
 
       navigate("/manager");
-    } catch {
+    } catch (err) {
       setStatus("Server error occurred.");
       setStatusType("bad");
       console.error(err);
@@ -167,3 +167,4 @@ export default function LoginPage() {
     </div>
   );
 }
+
