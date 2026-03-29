@@ -1,5 +1,24 @@
-To run:
+TO RUN:
+Create .env file in 'server' folder and paste text from Discord.
+Run the client side and server side commands below in two separate terminals.
+
+--------------
+
+Client side:
 
 cd client
 npm install
 npm run dev
+
+OR (works for Alex):
+
+cd client
+npm install
+node .\node_modules\vite\bin\vite.js
+
+
+Server side (works for Alex):
+
+cd server
+npm install
+node .\node_modules\nodemon\bin\nodemon.js src/server.js
