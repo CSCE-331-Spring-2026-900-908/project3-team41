@@ -56,7 +56,7 @@ export default function LoginPage() {
       localStorage.setItem("role", "employee");
 
       navigate("/cashier");
-    } catch (err) {
+    } catch {
       setStatus("Server error occurred.");
       setStatusType("bad");
       console.error(err);
@@ -103,7 +103,7 @@ export default function LoginPage() {
       localStorage.setItem("role", "manager");
 
       navigate("/manager");
-    } catch (err) {
+    } catch {
       setStatus("Server error occurred.");
       setStatusType("bad");
       console.error(err);
