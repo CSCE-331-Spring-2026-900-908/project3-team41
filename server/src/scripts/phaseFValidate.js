@@ -2,6 +2,7 @@ async function run() {
   const base = "http://localhost:3001/api/cashier";
   const results = [];
 
+  // Baseline read check: endpoint is up and menu shape is valid.
   const menuRes = await fetch(`${base}/menu`);
   const menuBody = await menuRes.json();
   results.push({
@@ -11,6 +12,7 @@ async function run() {
     detail: `count=${Array.isArray(menuBody.items) ? menuBody.items.length : 0}`,
   });
 
+  // Contract guard check: missing/invalid fields should produce 400 + errors[].
   const invalidRes = await fetch(`${base}/checkout`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -24,6 +26,7 @@ async function run() {
     detail: (invalidBody.errors || []).join(" | "),
   });
 
+  // Business guard check: unknown drink names should be rejected clearly.
   const unknownRes = await fetch(`${base}/checkout`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -54,6 +57,7 @@ async function run() {
   let successfulCheckout = null;
   let inventoryConflict = null;
 
+  // Probe available menu items until a real success path is observed.
   for (const item of menuItems) {
     const payload = {
       employeeId: 1,
@@ -100,6 +104,7 @@ async function run() {
       : "No in-stock item found for quantity=1",
   });
 
+  // Keep a dedicated assertion for conflict handling behavior.
   results.push({
     test: "POST /checkout inventory conflict path",
     status: inventoryConflict ? 409 : 200,
@@ -107,6 +112,7 @@ async function run() {
     detail: inventoryConflict || "No conflict observed during probe",
   });
 
+  // Print CI-style summary lines for quick scan in terminal logs.
   for (const row of results) {
     console.log(
       `${row.ok ? "PASS" : "FAIL"} | ${row.test} | status=${row.status} | ${row.detail}`

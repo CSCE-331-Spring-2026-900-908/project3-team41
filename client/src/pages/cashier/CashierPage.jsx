@@ -16,6 +16,7 @@ const TOPPING_PRICES = {
   blended: 0.5,
 };
 
+// Normalize legacy category text into the React page's fixed sections.
 function categoryLabel(rawCategory) {
   const value = (rawCategory || "").toLowerCase();
   if (value.includes("classic")) return "Classics";
@@ -25,6 +26,7 @@ function categoryLabel(rawCategory) {
   return "Specialties";
 }
 
+// Mirrors the default state of the legacy customization popup.
 function defaultCustomization() {
   return {
     size: "S",
@@ -41,6 +43,7 @@ function defaultCustomization() {
   };
 }
 
+// Legacy-compatible pricing rules for size and toppings.
 function computeUnitPrice(basePrice, customization) {
   let total = Number(basePrice) + (SIZE_ADJUSTMENTS[customization.size] || 0);
   if (!customization.noToppings) {
@@ -51,6 +54,7 @@ function computeUnitPrice(basePrice, customization) {
   return Number(total.toFixed(2));
 }
 
+// Stable cart identity string so identical customizations merge cleanly.
 function buildOptionsKey(customization) {
   const parts = [
     `size=${customization.size}`,
@@ -92,6 +96,7 @@ export default function CashierPage() {
   const [paymentReceipt, setPaymentReceipt] = useState(null);
   const [toast, setToast] = useState(null);
 
+  // Initial menu fetch from backend; keeps UI state simple for cashier flow.
   useEffect(() => {
     async function loadMenu() {
       try {
@@ -118,6 +123,7 @@ export default function CashierPage() {
     loadMenu();
   }, []);
 
+  // Auto-dismiss transient toast messages after a short delay.
   useEffect(() => {
     if (!toast) return undefined;
     const id = setTimeout(() => setToast(null), 3000);
@@ -126,6 +132,7 @@ export default function CashierPage() {
 
   const anyModalOpen = Boolean(customizingItem || checkoutOpen || paymentReceipt);
 
+  // Freeze page scroll while any modal is open and restore position on close.
   useEffect(() => {
     if (!anyModalOpen) return undefined;
 
@@ -149,6 +156,7 @@ export default function CashierPage() {
     };
   }, [anyModalOpen]);
 
+  // Global Escape key behavior to close whichever modal is currently active.
   useEffect(() => {
     function onEsc(event) {
       if (event.key !== "Escape") return;
@@ -169,6 +177,7 @@ export default function CashierPage() {
     return () => window.removeEventListener("keydown", onEsc);
   }, [customizingItem, checkoutOpen, paymentReceipt]);
 
+  // Group DB menu rows by category section for rendering.
   const groupedMenu = useMemo(() => {
     const groups = CATEGORY_ORDER.reduce((acc, key) => {
       acc[key] = [];
@@ -183,6 +192,7 @@ export default function CashierPage() {
     return groups;
   }, [menuItems]);
 
+  // Keep a canonical cart total from current line items.
   const cartTotal = useMemo(() => {
     const total = cartItems.reduce((sum, item) => {
       return sum + item.unitPrice * item.quantity;
@@ -195,6 +205,7 @@ export default function CashierPage() {
     return computeUnitPrice(customizingItem.effectivePrice, customization);
   }, [customizingItem, customization]);
 
+  // Add or merge an item by drink + size + options combination.
   function addToCart(item, selectedCustomization) {
     const optionsKey = buildOptionsKey(selectedCustomization);
     const size = selectedCustomization.size;
@@ -225,6 +236,7 @@ export default function CashierPage() {
     });
   }
 
+  // Quantity control helpers used in cart and checkout review modal.
   function incrementAt(index) {
     setCartItems((prev) =>
       prev.map((item, i) => (i === index ? { ...item, quantity: item.quantity + 1 } : item))
@@ -250,6 +262,7 @@ export default function CashierPage() {
     navigate("/");
   }
 
+  // Open customization with clean defaults for each drink selection.
   function startCustomization(item) {
     setCustomization(defaultCustomization());
     setCustomizingItem(item);
@@ -259,6 +272,7 @@ export default function CashierPage() {
     setCustomizingItem(null);
   }
 
+  // Keep "no toppings" mutually exclusive with individual topping toggles.
   function toggleCustomizationField(field, value) {
     setCustomization((prev) => {
       if (field === "noToppings") {
@@ -295,12 +309,14 @@ export default function CashierPage() {
     closeCustomization();
   }
 
+  // Legacy behavior: blank/invalid customer ID is treated as guest ID 1.
   function effectiveCustomerId() {
     const parsed = Number(customerIdInput.trim());
     if (!customerIdInput.trim() || Number.isNaN(parsed) || parsed <= 0) return 1;
     return parsed;
   }
 
+  // Submit contract-shaped payload and transition to payment success modal.
   async function submitCheckout() {
     if (cartItems.length === 0) return;
 

@@ -12,6 +12,7 @@ function httpError(status, message) {
   return err;
 }
 
+// Read menu rows and project them into the cashier API response shape.
 router.get("/menu", async (req, res) => {
   try {
     const result = await pool.query(
@@ -53,6 +54,7 @@ router.get("/menu", async (req, res) => {
   }
 });
 
+// Atomic checkout flow: validate request, write order, then update inventory.
 router.post("/checkout", async (req, res) => {
   const payload = req.body;
   const validation = validateCheckoutRequest(payload);
@@ -69,10 +71,12 @@ router.post("/checkout", async (req, res) => {
 
   const client = await pool.connect();
   try {
+    // Keep order write + inventory updates in a single transaction.
     await client.query("BEGIN");
 
     const productIdsExpanded = [];
 
+    // Resolve each incoming cart item to a concrete product ID.
     for (const item of items) {
       const productResult = await client.query(
         "SELECT productid FROM menu WHERE itemname = $1 LIMIT 1",
@@ -98,6 +102,7 @@ router.post("/checkout", async (req, res) => {
 
     const transactionId = transactionResult.rows[0].transactionid;
 
+    // Subtract ingredients, cup size, and consumables for each cart line.
     for (const item of items) {
       const ingredientResult = await client.query(
         "SELECT ingredients::text[] FROM menu WHERE LOWER(itemname) = LOWER($1) LIMIT 1",
@@ -115,6 +120,7 @@ router.post("/checkout", async (req, res) => {
       else if (item.size === "M") cupInventoryName = "16oz plastic cups";
       else if (item.size === "L") cupInventoryName = "24oz plastic cups";
 
+      // Guard updates with quantity checks so inventory never goes negative.
       for (const ingredient of ingredients) {
         const ingredientUpdate = await client.query(
           "UPDATE inventory SET quantity = quantity - $1 WHERE ingredientname = $2 AND quantity >= $1",
