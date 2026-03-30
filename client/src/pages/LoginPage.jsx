@@ -4,40 +4,47 @@ import "../styles/LoginPage.css";
 
 const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:3001").replace(/\/+$/, "");
 
-export default function LoginPage() {
+export default function LoginPage({ mode = "cashier" }) {
   const navigate = useNavigate();
+  const isManager = mode === "manager";
 
   const [employeeId, setEmployeeId] = useState("");
-  const [managerId, setManagerId] = useState("");
-  const [managerPassword, setManagerPassword] = useState("");
-
+  const [password, setPassword] = useState("");
   const [status, setStatus] = useState("");
-  const [statusType, setStatusType] = useState(""); // "ok" or "bad"
+  const [statusType, setStatusType] = useState("");
+
+  const title = isManager ? "Manager Login" : "Employee Login";
+  const submitLabel = isManager ? "Manager Login" : "Employee Login";
+  const inputLabel = isManager ? "Enter Manager ID" : "Enter Employee ID";
 
   function clearStatus() {
     setStatus("");
     setStatusType("");
   }
 
-  async function handleEmployeeLogin(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     clearStatus();
 
     const parsedId = Number(employeeId.trim());
-
     if (!employeeId.trim() || Number.isNaN(parsedId)) {
-      setStatus("Please enter a numeric Employee ID.");
+      setStatus(`Please enter a numeric ${isManager ? "Manager" : "Employee"} ID.`);
       setStatusType("bad");
       return;
     }
 
     try {
-      const res = await fetch(`${API_URL}/api/login/employee`, {
+      const endpoint = isManager ? "/api/login/manager" : "/api/login/employee";
+      const payload = isManager
+        ? { employeeId: parsedId, password }
+        : { employeeId: parsedId };
+
+      const res = await fetch(`${API_URL}${endpoint}`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ employeeId: parsedId })
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -53,56 +60,9 @@ export default function LoginPage() {
 
       localStorage.setItem("employeeId", String(parsedId));
       localStorage.setItem("employeeName", data.name || "");
-      localStorage.setItem("role", "employee");
+      localStorage.setItem("role", isManager ? "manager" : "employee");
 
-      navigate("/cashier");
-    } catch (err) {
-      setStatus("Server error occurred.");
-      setStatusType("bad");
-      console.error(err);
-    }
-  }
-
-  async function handleManagerLogin(e) {
-    e.preventDefault();
-    clearStatus();
-
-    const parsedId = Number(managerId.trim());
-
-    if (!managerId.trim() || Number.isNaN(parsedId)) {
-      setStatus("Please enter a numeric Manager ID.");
-      setStatusType("bad");
-      return;
-    }
-
-    try {
-      const res = await fetch(`${API_URL}/api/login/manager`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          employeeId: parsedId,
-          password: managerPassword
-        })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setStatus(data.error || "Login failed.");
-        setStatusType("bad");
-        return;
-      }
-
-      setStatus(data.message);
-      setStatusType("ok");
-
-      localStorage.setItem("employeeId", String(parsedId));
-      localStorage.setItem("employeeName", data.name || "");
-      localStorage.setItem("role", "manager");
-
-      navigate("/manager");
+      navigate(isManager ? "/manager" : "/cashier");
     } catch (err) {
       setStatus("Server error occurred.");
       setStatusType("bad");
@@ -112,51 +72,46 @@ export default function LoginPage() {
 
   return (
     <div className="login-root">
-      <div className="login-card">
-        <h1 className="page-title">Login</h1>
-        <hr />
-
-        <div className="login-sections">
-          <form className="login-pane" onSubmit={handleEmployeeLogin}>
-            <h2 className="section-title">Employee Login</h2>
-            <label className="field-label">Enter Employee ID</label>
-            <input
-              className="input"
-              type="text"
-              placeholder="e.g., 0"
-              value={employeeId}
-              onChange={(e) => setEmployeeId(e.target.value)}
-            />
-            <button className="primary-btn" type="submit">
-              Login
-            </button>
-          </form>
-
-          <form className="login-pane" onSubmit={handleManagerLogin}>
-            <h2 className="section-title">Manager Login</h2>
-            <label className="field-label">Enter Employee ID</label>
-            <input
-              className="input"
-              type="text"
-              placeholder="e.g., 0"
-              value={managerId}
-              onChange={(e) => setManagerId(e.target.value)}
-            />
-
-            <label className="field-label">Password</label>
-            <input
-              className="input"
-              type="password"
-              placeholder="********"
-              value={managerPassword}
-              onChange={(e) => setManagerPassword(e.target.value)}
-            />
-
-            <button className="primary-btn" type="submit">
-              Login
-            </button>
-          </form>
+      <div className="login-card login-card-single">
+        <div className="login-header">
+          <button className="secondary-btn" type="button" onClick={() => navigate("/")}>
+            Back
+          </button>
+          <h1 className="page-title">{title}</h1>
+          <p className="login-subtitle">
+            {isManager
+              ? "Sign in with a manager ID and password."
+              : "Sign in with an employee ID to access the cashier screen."}
+          </p>
         </div>
+
+        <form className="login-pane login-pane-single" onSubmit={handleSubmit}>
+          <label className="field-label">{inputLabel}</label>
+          <input
+            className="input"
+            type="text"
+            placeholder="e.g., 1"
+            value={employeeId}
+            onChange={(e) => setEmployeeId(e.target.value)}
+          />
+
+          {isManager && (
+            <>
+              <label className="field-label">Password</label>
+              <input
+                className="input"
+                type="password"
+                placeholder="********"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </>
+          )}
+
+          <button className="primary-btn" type="submit">
+            {submitLabel}
+          </button>
+        </form>
 
         {status && (
           <p className={statusType === "ok" ? "status-ok" : "status-bad"}>
@@ -167,4 +122,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

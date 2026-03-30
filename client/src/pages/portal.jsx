@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import "../styles/Portal.css";
+import "../styles/portal.css";
 
 export default function Portal() {
   const navigate = useNavigate();
@@ -10,7 +10,7 @@ export default function Portal() {
         <h1 className="portal-title">Boba Tea</h1>
 
         <div className="portal-button-grid">
-          <button className="portal-btn" onClick={() => navigate("/login")}>
+          <button className="portal-btn" onClick={() => navigate("/cashier/login")}>
             Cashier
           </button>
 
@@ -18,7 +18,7 @@ export default function Portal() {
             Customer
           </button>
 
-          <button className="portal-btn" onClick={() => navigate("/login")}>
+          <button className="portal-btn" onClick={() => navigate("/manager/login")}>
             Manager
           </button>
 
@@ -30,3 +30,4 @@ export default function Portal() {
     </div>
   );
 }
+
