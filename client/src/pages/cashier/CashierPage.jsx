@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/CashierPage.css";
 
+const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:3001").replace(/\/+$/, "");
+
 const CATEGORY_ORDER = ["Classics", "Fruity", "Creamy", "Savory", "Specialties"];
 const SIZE_ADJUSTMENTS = { S: 0, M: 0.5, L: 1, XL: 1.5 };
 const TOPPING_PRICES = {
@@ -101,7 +103,7 @@ export default function CashierPage() {
         setLoading(true);
         setError("");
 
-        const res = await fetch("http://localhost:3001/api/cashier/menu");
+        const res = await fetch(`${API_URL}/api/cashier/menu`);
         const data = await res.json();
 
         if (!res.ok || !data.success) {
@@ -110,8 +112,9 @@ export default function CashierPage() {
         }
 
         setMenuItems(data.items || []);
-      } catch {
+      } catch (err) {
         setError("Server error while loading menu.");
+        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -339,7 +342,7 @@ export default function CashierPage() {
         })),
       };
 
-      const res = await fetch("http://localhost:3001/api/cashier/checkout", {
+      const res = await fetch(`${API_URL}/api/cashier/checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -357,9 +360,10 @@ export default function CashierPage() {
       setPaymentType("CASH");
       setCheckoutOpen(false);
       setToast({ type: "ok", message: "Checkout completed successfully" });
-    } catch {
+    } catch (err) {
       setCheckoutError("Server error during checkout.");
       setToast({ type: "bad", message: "Checkout failed. Please try again." });
+      console.error(err);
     } finally {
       setCheckoutBusy(false);
     }
@@ -664,3 +668,6 @@ export default function CashierPage() {
     </div>
   );
 }
+
+
+
