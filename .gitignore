@@ -50,3 +50,5 @@ target/
 node_modules/
 .env
 dist/
+
+service-account.json
