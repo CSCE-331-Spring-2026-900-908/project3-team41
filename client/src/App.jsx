@@ -4,7 +4,7 @@ import MenuPage from "./pages/menu/MenuPage";
 import CashierLoginPage from "./pages/cashier/CashierLoginPage";
 import CashierPage from "./pages/cashier/CashierPage";
 import ManagerLoginPage from "./pages/manager/ManagerLoginPage";
-import AnalyticsPage from "./pages/manager/AnalyticsPage";
+import ManagerNav from "./pages/manager/ManagerNav";
 
 export default function App() {
   return (
@@ -16,7 +16,8 @@ export default function App() {
         <Route path="/menu" element={<MenuPage />} />
         <Route path="/cashier" element={<CashierPage />} />
         <Route path="/manager/login" element={<ManagerLoginPage />} />
-        <Route path="/manager" element={<AnalyticsPage />} />
+        <Route path="/manager" element={<Navigate to="/manager/analytics" replace />} />
+        <Route path="/manager/:page" element={<ManagerNav />} />
       </Routes>
     </BrowserRouter>
   );
