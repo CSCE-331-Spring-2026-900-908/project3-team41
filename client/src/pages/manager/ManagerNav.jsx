@@ -16,13 +16,16 @@ export default function ManagerNav() {
     employees: EmployeesPage
   };
 
+  // Handles name mismatches
   const ActivePage = pages[page?.toLowerCase()] || null;
 
+  // Goes to analytics by default
   if (!ActivePage) {
     navigate("/manager/analytics", { replace: true });
     return null;
   }
 
+  // Switching between pages
   return (
     <div className="manager-root">
       <Sidebar active={page} onSelect={(p) => navigate(`/manager/${p}`)} />
@@ -33,6 +36,7 @@ export default function ManagerNav() {
   );
 }
 
+// Creates a functional sidebar
 function Sidebar({ active, onSelect }) {
   const buttons = ["analytics", "inventory", "employees", "menu"];
 
