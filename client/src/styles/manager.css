@@ -1,0 +1,146 @@
+.manager-root {
+  display: flex;
+  min-height: 100vh;
+  background: #f9f9f9;
+  color: #000;
+  font-family: Arial, sans-serif;
+}
+
+.manager-sidebar {
+  width: 200px;
+  background: #222;
+  display: flex;
+  flex-direction: column;
+}
+
+.manager-sidebar button {
+  display: block;
+  padding: 12px 16px;
+  width: 100%;
+  text-align: left;
+  border: none;
+  cursor: pointer;
+  background: #222;
+  color: white;
+  margin-bottom: 2px;
+  font-weight: normal;
+  transition: background 0.2s;
+}
+
+.manager-sidebar button.active {
+  background: #444;
+  font-weight: bold;
+}
+
+.manager-sidebar button:hover {
+  background: #333;
+}
+
+.manager-content {
+  flex: 1;
+  padding: 32px;
+  background: #f9f9f9;
+  color: #000;
+}
+
+.manager-page {
+  padding: 32px;
+  font-family: sans-serif;
+  max-width: 900px;
+  color: black; 
+}
+
+.manager-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.manager-title {
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0;
+}
+.manager-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-primary {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #222;
+  background: #222;
+  color: #fff;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-secondary {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background: #fff;
+  font-weight: 500;
+  cursor: pointer;
+  color: black;
+}
+
+.btn-danger {
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid #f5c4c4;
+  background: #fff0f0;
+  color: #a32d2d;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.table-wrap {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  text-align: left;
+  padding: 10px 14px;
+  background: #f5f5f5;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  border-bottom: 1px solid #ddd;
+}
+
+.table td {
+  padding: 10px 14px;
+  font-size: 14px;
+  border-bottom: 1px solid #eee;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.muted {
+  color: black;
+  font-size: 14px;
+}
+
+.error {
+  color: #a32d2d;
+  font-size: 14px;
+}
+
+h1 {
+    color: black;
+}

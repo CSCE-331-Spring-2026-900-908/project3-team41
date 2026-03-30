@@ -3,6 +3,7 @@ import AnalyticsPage from "./AnalyticsPage";
 import InventoryPage from "./InventoryPage";
 import MenuPage from "./MenuPage";
 import EmployeesPage from "./EmployeesPage";
+import "../../styles/manager.css"; 
 
 export default function ManagerNav() {
   const { page } = useParams();
@@ -23,9 +24,9 @@ export default function ManagerNav() {
   }
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
+    <div className="manager-root">
       <Sidebar active={page} onSelect={(p) => navigate(`/manager/${p}`)} />
-      <div style={{ flex: 1, padding: 32, background: "#f9f9f9" }}>
+      <div className="manager-content">
         <ActivePage />
       </div>
     </div>
@@ -33,33 +34,19 @@ export default function ManagerNav() {
 }
 
 function Sidebar({ active, onSelect }) {
-  const styleButton = (isActive) => ({
-    display: "block",
-    padding: "12px 16px",
-    width: "100%",
-    background: isActive ? "#444" : "#222",
-    color: "white",
-    textAlign: "left",
-    border: "none",
-    cursor: "pointer",
-    fontWeight: isActive ? "bold" : "normal",
-    marginBottom: 2,
-  });
+  const buttons = ["analytics", "inventory", "employees", "menu"];
 
   return (
-    <div style={{ width: 200, background: "#222" }}>
-      <button style={styleButton(active === "analytics")} onClick={() => onSelect("analytics")}>
-        Analytics
-      </button>
-      <button style={styleButton(active === "inventory")} onClick={() => onSelect("inventory")}>
-        Inventory
-      </button>
-      <button style={styleButton(active === "employees")} onClick={() => onSelect("employees")}>
-        Employees
-      </button>
-      <button style={styleButton(active === "menu")} onClick={() => onSelect("menu")}>
-        Menu
-      </button>
+    <div className="manager-sidebar">
+      {buttons.map((b) => (
+        <button
+          key={b}
+          className={active === b ? "active" : ""}
+          onClick={() => onSelect(b)}
+        >
+          {b.charAt(0).toUpperCase() + b.slice(1)}
+        </button>
+      ))}
     </div>
   );
 }
