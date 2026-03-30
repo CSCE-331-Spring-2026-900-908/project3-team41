@@ -137,7 +137,7 @@ router.post("/checkout", async (req, res) => {
         "UPDATE inventory SET quantity = quantity - $1 WHERE ingredientname IN ('boba straws', 'sealing film rolls', 'stirrers') AND quantity >= $1",
         [item.quantity]
       );
-      if (suppliesUpdate.rowCount < 3) {
+      if (suppliesUpdate.rowCount < 1) {
         throw httpError(409, "Insufficient inventory for consumable supplies");
       }
     }
