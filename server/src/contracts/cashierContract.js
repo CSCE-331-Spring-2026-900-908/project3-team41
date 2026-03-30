@@ -57,6 +57,7 @@ function isNonEmptyString(value) {
   return typeof value === "string" && value.trim().length > 0;
 }
 
+// Validate one line item so API errors can point to exact array indices.
 function validateCheckoutItem(item, index) {
   const errors = [];
   const prefix = `items[${index}]`;
@@ -88,6 +89,7 @@ function validateCheckoutItem(item, index) {
   return errors;
 }
 
+// Validate the full checkout payload against the agreed contract.
 function validateCheckoutRequest(payload) {
   const errors = [];
 
@@ -121,6 +123,7 @@ function validateCheckoutRequest(payload) {
   };
 }
 
+// Shared server-side totaling to keep route logic and responses consistent.
 function computeCheckoutTotals(items) {
   const totals = items.reduce(
     (acc, item) => {
