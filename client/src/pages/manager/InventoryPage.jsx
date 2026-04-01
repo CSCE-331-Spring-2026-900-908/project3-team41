@@ -12,6 +12,7 @@ export default function InventoryPage() {
   const [showRestock, setShowRestock] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showAddItem, setShowAddItem] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -32,12 +33,21 @@ export default function InventoryPage() {
   useEffect(() => { reload(); }, [reload]);
 
   // Add items to inventory
-  const handleAddItem = async (name, qty, price) => {
-    await fetch(`${API_URL}/inventory`, {
-      method: "POST",
+  const handleSaveItem = async (name, qty, price, inventoryId) => {
+    const method = inventoryId ? "PATCH" : "POST";
+    const url = inventoryId ? `${API_URL}/inventory/${inventoryId}` : `${API_URL}/inventory`;
+
+    const res = await fetch(url, {
+      method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ingredientName: name, quantity: qty, price }),
     });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || `Server responded ${res.status}`);
+    }
+
     await reload();
   };
 
@@ -46,6 +56,21 @@ export default function InventoryPage() {
     if (!window.confirm("Remove this item?")) return;
     await fetch(`${API_URL}/inventory/${inventoryId}`, { method: "DELETE" });
     await reload();
+  };
+
+  const openAddItem = () => {
+    setEditingItem(null);
+    setShowAddItem(true);
+  };
+
+  const openEditItem = (item) => {
+    setEditingItem(item);
+    setShowAddItem(true);
+  };
+
+  const closeAddItem = () => {
+    setEditingItem(null);
+    setShowAddItem(false);
   };
 
   // Restock inventory items
@@ -82,7 +107,7 @@ export default function InventoryPage() {
       <div className="manager-header">
         <h1 className="manager-title">Inventory</h1>
         <div className="manager-actions">
-          <button className="btn-secondary" onClick={() => setShowAddItem(true)}>+ Add Item</button>
+          <button className="btn-secondary" onClick={openAddItem}>+ Add Item</button>
           <button className="btn-primary" onClick={() => setShowRestock(true)}>Restock</button>
         </div>
       </div>
@@ -111,6 +136,7 @@ export default function InventoryPage() {
                   <td>{Number(item.quantity).toFixed(2)}</td>
                   <td>{fmt(item.price)}</td>
                   <td className="text-right">
+                    <button className="btn-secondary" onClick={() => openEditItem(item)}>Edit</button>
                     <button className="btn-danger" onClick={() => handleRemove(item.inventoryId)}>Remove</button>
                   </td>
                 </tr>
@@ -129,7 +155,7 @@ export default function InventoryPage() {
 
       {showRestock && <RestockModal inventory={inventory} selected={selectedForOrder} onToggle={toggleSelection} onCheckout={() => setShowConfirm(true)} onClose={() => setShowRestock(false)} />}
       {showConfirm && <ConfirmationModal selected={selectedForOrder} onChange={setSelectedForOrder} onConfirm={handleRestock} onClose={() => setShowConfirm(false)} />}
-      {showAddItem && <AddItemModal onSave={handleAddItem} onClose={() => setShowAddItem(false)} />}
+      {showAddItem && <AddItemModal item={editingItem} onSave={handleSaveItem} onClose={closeAddItem} />}
     </div>
   );
 }
