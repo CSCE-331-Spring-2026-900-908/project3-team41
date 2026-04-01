@@ -29,9 +29,9 @@ function categoryLabel(rawCategory) {
 // Mirrors the default state of the legacy customization popup.
 function defaultCustomization() {
   return {
-    size: "S",
-    sugar: "+Sugar",
-    ice: "+Ice",
+    size: "M",
+    sugar: "Normal",
+    ice: "Normal",
     noToppings: false,
     boba: false,
     jellies: false,
@@ -424,11 +424,11 @@ export default function CashierPage() {
                       <span className="cart-meta">${item.unitPrice.toFixed(2)} each</span>
                     </div>
                     <div className="cart-actions">
-                      <button type="button" onClick={() => decrementAt(index)}>
+                      <button type="button" className="button-increase" onClick={() => decrementAt(index)}>
                         -
                       </button>
                       <span>{item.quantity}</span>
-                      <button type="button" onClick={() => incrementAt(index)}>
+                      <button type="button" className="button-increase" onClick={() => incrementAt(index)}>
                         +
                       </button>
                       <button type="button" className="remove-btn" onClick={() => removeAt(index)}>
@@ -483,7 +483,7 @@ export default function CashierPage() {
             <div className="modal-group" onClick={(e) => e.stopPropagation()}>
               <label>Sugar</label>
               <div className="chip-row">
-                {["+Sugar", "-Sugar"].map((sugar) => (
+                {["None", "Less", "Normal", "Extra"].map((sugar) => (
                   <button
                     key={sugar}
                     type="button"
@@ -499,7 +499,7 @@ export default function CashierPage() {
             <div className="modal-group" onClick={(e) => e.stopPropagation()}>
               <label>Ice</label>
               <div className="chip-row">
-                {["+Ice", "-Ice"].map((ice) => (
+                {["None", "Less", "Normal", "Extra"].map((ice) => (
                   <button
                     key={ice}
                     type="button"
@@ -577,11 +577,11 @@ export default function CashierPage() {
                     </span>
                   </div>
                   <div className="cart-actions">
-                    <button type="button" onClick={() => decrementAt(index)}>
+                    <button type="button" className="button-increase" onClick={() => decrementAt(index)}>
                       -
                     </button>
                     <span>{item.quantity}</span>
-                    <button type="button" onClick={() => incrementAt(index)}>
+                    <button type="button" className="button-increase" onClick={() => incrementAt(index)}>
                       +
                     </button>
                     <button type="button" className="remove-btn" onClick={() => removeAt(index)}>
