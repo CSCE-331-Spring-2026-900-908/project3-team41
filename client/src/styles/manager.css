@@ -161,6 +161,7 @@ h1 {
 .modal-title {
   margin: 0;
   font-weight: 600;
+  color: black;
 }
  
 .modal-close {
@@ -233,6 +234,8 @@ h1 {
   font-size: 14px;
   background: #fff;
   outline: none;
+  caret-color: black;
+  color: black;
 }
  
 .manager-modal-error {
@@ -270,6 +273,7 @@ h1 {
  
 .restock-title { 
   font-size: 22px; 
+  color: black;
 }
  
 .restock-table {
@@ -313,6 +317,7 @@ h1 {
   font-weight: 600;
   cursor: pointer;
   font-size: 13px;
+  color: black;
 }
  
 .restock-btn-selected {
