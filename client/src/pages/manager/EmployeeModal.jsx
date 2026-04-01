@@ -12,6 +12,7 @@ export default function EmployeeModal({ initialEmployee, onSave, onClose }) {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // Error handling for invalid employee added/edited
   const handleSave = async () => {
     setError("");
 

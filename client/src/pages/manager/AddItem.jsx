@@ -1,13 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-export default function AddItemModal({ onSave, onClose }) {
-  const [name, setName]   = useState("");
-  const [qty, setQty]     = useState("");
-  const [price, setPrice] = useState("");
+export default function AddItemModal({ item, onSave, onClose }) {
+  const [name, setName] = useState(item?.ingredientName || "");
+  const [qty, setQty] = useState(item?.quantity?.toString() || "");
+  const [price, setPrice] = useState(item?.price?.toString() || "");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // Saving the added item
+  useEffect(() => {
+    setName(item?.ingredientName || "");
+    setQty(item?.quantity?.toString() || "");
+    setPrice(item?.price?.toString() || "");
+  }, [item]);
+
+  // Sets errors when trying to add items
   const handleSave = async () => {
     setError("");
 
@@ -17,39 +23,42 @@ export default function AddItemModal({ onSave, onClose }) {
     }
 
     const parsedQty = parseFloat(qty);
-    if (isNaN(parsedQty) || parsedQty < 0) {
+    if (Number.isNaN(parsedQty) || parsedQty < 0) {
       setError("Quantity must be a valid non-negative number.");
       return;
     }
 
     const parsedPrice = parseFloat(price);
-    if (isNaN(parsedPrice) || parsedPrice < 0) {
+    if (Number.isNaN(parsedPrice) || parsedPrice < 0) {
       setError("Price must be a valid non-negative number.");
       return;
     }
 
     setSaving(true);
     try {
-      await onSave(name.trim(), parsedQty, parsedPrice);
+      await onSave(name.trim(), parsedQty, parsedPrice, item?.inventoryId);
       onClose();
     } catch (err) {
-      setError("Failed to save. Please try again.");
+      setError(err.message || "Failed to save. Please try again.");
     } finally {
       setSaving(false);
     }
   };
 
-  // Allow pressing Enter in any field to submit
-  const onKey = (e) => { if (e.key === "Enter") handleSave(); };
+  const onKey = (e) => {
+    if (e.key === "Enter") handleSave();
+  };
 
-    return (
+  return (
     <div className="modal-overlay manager-modal-overlay">
       <div className="modal manager-modal">
         <div className="modal-header manager-modal-header">
-          <h2 className="modal-title manager-modal-title">Add Inventory Item</h2>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <h2 className="modal-title manager-modal-title">
+            {item ? "Edit Inventory Item" : "Add Inventory Item"}
+          </h2>
+          <button className="modal-close" onClick={onClose}>?</button>
         </div>
- 
+
         <div className="manager-modal-body">
           <label className="manager-modal-label">Ingredient name</label>
           <input
@@ -60,7 +69,7 @@ export default function AddItemModal({ onSave, onClose }) {
             onKeyDown={onKey}
             autoFocus
           />
- 
+
           <label className="manager-modal-label">Quantity</label>
           <input
             className="manager-modal-input"
@@ -69,7 +78,7 @@ export default function AddItemModal({ onSave, onClose }) {
             onChange={(e) => setQty(e.target.value)}
             onKeyDown={onKey}
           />
- 
+
           <label className="manager-modal-label">Price</label>
           <input
             className="manager-modal-input"
@@ -78,17 +87,17 @@ export default function AddItemModal({ onSave, onClose }) {
             onChange={(e) => setPrice(e.target.value)}
             onKeyDown={onKey}
           />
- 
+
           {error && <p className="manager-modal-error">{error}</p>}
         </div>
- 
+
         <div className="manager-modal-footer">
           <button
             className="modal-btn-action manager-modal-btn-save"
             onClick={handleSave}
             disabled={saving}
           >
-            {saving ? "Saving…" : "Save"}
+            {saving ? "Saving�" : "Save"}
           </button>
         </div>
       </div>

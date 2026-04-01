@@ -31,6 +31,7 @@ export default function EmployeesPage() {
     reload();
   }, [reload]);
 
+  // Saving new/edited employee information
   const handleSaveEmployee = async (employee) => {
     const isEdit = Boolean(employee.employeeId);
     const url = isEdit
@@ -57,6 +58,7 @@ export default function EmployeesPage() {
     await reload();
   };
 
+  // Deleting employee information
   const handleRemove = async (employeeId) => {
     if (!window.confirm("Remove this employee?")) return;
 

@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../config/db");
 
+// Creating inventory table
 function makeInventoryDto(row) {
   return {
     inventoryId: Number(row.inventoryid),
@@ -11,6 +12,7 @@ function makeInventoryDto(row) {
   };
 }
 
+// Creating Employee table
 function makeEmployeeDto(row) {
   return {
     employeeId: Number(row.employeeid),
@@ -21,6 +23,7 @@ function makeEmployeeDto(row) {
   };
 }
 
+// Getting all table information for inventory
 router.get("/", async (req, res) => {
   try {
     const result = await pool.query(
@@ -33,6 +36,7 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Adding inventory item
 router.post("/", async (req, res) => {
   const { ingredientName, quantity, price } = req.body;
   if (!ingredientName || typeof quantity !== "number" || typeof price !== "number") {
@@ -57,6 +61,7 @@ router.post("/", async (req, res) => {
   }
 });
 
+// Removing inventory item
 router.delete("/:inventoryId", async (req, res) => {
   const inventoryId = Number(req.params.inventoryId);
   if (!Number.isInteger(inventoryId)) {
@@ -78,6 +83,7 @@ router.delete("/:inventoryId", async (req, res) => {
   }
 });
 
+// Restocking inventory
 router.patch("/:inventoryId/restock", async (req, res) => {
   const inventoryId = Number(req.params.inventoryId);
   const { quantity } = req.body;
@@ -101,6 +107,54 @@ router.patch("/:inventoryId/restock", async (req, res) => {
   }
 });
 
+// Update inventory item details
+router.patch("/:inventoryId", async (req, res) => {
+  const inventoryId = Number(req.params.inventoryId);
+  const { ingredientName, quantity, price } = req.body;
+
+  if (!Number.isInteger(inventoryId)) {
+    return res.status(400).json({ error: "Invalid inventory ID." });
+  }
+
+  const updates = [];
+  const values = [];
+  let idx = 1;
+
+  if (typeof ingredientName === "string" && ingredientName.trim()) {
+    updates.push(`ingredientname = $${idx++}`);
+    values.push(ingredientName.trim());
+  }
+  if (typeof quantity === "number" && quantity >= 0) {
+    updates.push(`quantity = $${idx++}`);
+    values.push(quantity);
+  }
+  if (typeof price === "number" && price >= 0) {
+    updates.push(`price = $${idx++}`);
+    values.push(price);
+  }
+
+  if (updates.length === 0) {
+    return res.status(400).json({ error: "No valid fields provided for update." });
+  }
+
+  values.push(inventoryId);
+
+  try {
+    const result = await pool.query(
+      `UPDATE inventory SET ${updates.join(", ")} WHERE inventoryid = $${idx} RETURNING inventoryid, ingredientname, quantity, price`,
+      values
+    );
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Inventory item not found." });
+    }
+    return res.json(makeInventoryDto(result.rows[0]));
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Failed to update inventory item." });
+  }
+});
+
+// Getting all table information for employees
 router.get("/employees", async (req, res) => {
   try {
     const result = await pool.query(
@@ -113,6 +167,7 @@ router.get("/employees", async (req, res) => {
   }
 });
 
+// Add employees
 router.post("/employees", async (req, res) => {
   const { employeeName, isManager, hoursWorked, hourlyPay } = req.body;
   if (!employeeName || typeof isManager !== "boolean" || typeof hoursWorked !== "number" || typeof hourlyPay !== "number") {
@@ -137,6 +192,7 @@ router.post("/employees", async (req, res) => {
   }
 });
 
+// Remove employees
 router.delete("/employees/:employeeId", async (req, res) => {
   const employeeId = Number(req.params.employeeId);
   if (!Number.isInteger(employeeId)) {
@@ -158,6 +214,7 @@ router.delete("/employees/:employeeId", async (req, res) => {
   }
 });
 
+// Edit employee information
 router.patch("/employees/:employeeId", async (req, res) => {
   const employeeId = Number(req.params.employeeId);
   const { employeeName, isManager, hoursWorked, hourlyPay } = req.body;
