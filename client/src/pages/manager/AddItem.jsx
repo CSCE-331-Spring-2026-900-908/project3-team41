@@ -32,7 +32,7 @@ export default function AddItemModal({ onSave, onClose }) {
     try {
       await onSave(name.trim(), parsedQty, parsedPrice);
       onClose();
-    } catch (err) {
+    } catch {
       setError("Failed to save. Please try again.");
     } finally {
       setSaving(false);

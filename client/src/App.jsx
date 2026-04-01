@@ -6,6 +6,7 @@ import CashierPage from "./pages/cashier/CashierPage";
 import ManagerLoginPage from "./pages/manager/ManagerLoginPage";
 import ManagerNav from "./pages/manager/ManagerNav";
 import GoogleTranslateProvider from "./i18n/GoogleTranslateProvider";
+import CollegeStationWeather from "./components/CollegeStationWeather";
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
           <Route path="/manager/:page" element={<ManagerNav />} />
         </Routes>
       </BrowserRouter>
+      <CollegeStationWeather />
     </GoogleTranslateProvider>
   );
 }
