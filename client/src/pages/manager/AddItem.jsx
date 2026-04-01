@@ -56,7 +56,7 @@ export default function AddItemModal({ item, onSave, onClose }) {
           <h2 className="modal-title manager-modal-title">
             {item ? "Edit Inventory Item" : "Add Inventory Item"}
           </h2>
-          <button className="modal-close" onClick={onClose}>?</button>
+          <button className="modal-close" onClick={onClose}>X</button>
         </div>
 
         <div className="manager-modal-body">
@@ -97,7 +97,7 @@ export default function AddItemModal({ item, onSave, onClose }) {
             onClick={handleSave}
             disabled={saving}
           >
-            {saving ? "Saving�" : "Save"}
+            {saving ? "Saving" : "Save"}
           </button>
         </div>
       </div>
