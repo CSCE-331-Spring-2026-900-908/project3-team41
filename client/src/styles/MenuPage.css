@@ -1,0 +1,86 @@
+.menu-main {
+  display: flex;
+  justify-content: center;
+}
+
+.menu-page-wrapper {
+  width: 100%;
+  max-width: 1100px;
+}
+
+.menu-item-button {
+  cursor: pointer;
+  border: none;
+  text-align: left;
+  background: white;
+}
+
+.menu-item-button:hover {
+  transform: translateY(-2px);
+  transition: transform 0.15s ease;
+}
+
+.menu-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.menu-modal {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 650px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+.menu-modal-image {
+  width: 100%;
+  height: 320px;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  background: #f4f4f4;
+}
+
+.menu-modal-body {
+  padding: 24px;
+  text-align: center;
+}
+
+.menu-modal-title {
+  margin: 0 0 12px 0;
+  color: #444;
+}
+
+.menu-modal-price {
+  margin: 0 0 12px 0;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.menu-modal-description {
+  margin: 0 0 20px 0;
+  line-height: 1.6;
+  color: #444;
+}
+
+.menu-modal-close {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: none;
+  background-color: #7b4b2a;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.menu-modal-close:hover {
+  opacity: 0.9;
+}
