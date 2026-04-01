@@ -71,6 +71,130 @@ function makeMenuDto(row) {
   };
 }
 
+function toNumeric(value) {
+  return Number(value || 0);
+}
+
+function toMoney(value) {
+  return Number(toNumeric(value).toFixed(2));
+}
+
+function normalizeDateRange(from, to) {
+  const today = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  const todayString = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+
+  const start = typeof from === "string" && from.trim() ? from.trim() : todayString;
+  const end = typeof to === "string" && to.trim() ? to.trim() : todayString;
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(start) || !/^\d{4}-\d{2}-\d{2}$/.test(end)) {
+    return { error: "Date range must use YYYY-MM-DD format." };
+  }
+
+  if (start > end) {
+    return { error: "Start date must be before or equal to end date." };
+  }
+
+  return { start, end };
+}
+
+async function fetchRangeAnalytics(startDate, endDate) {
+  const productUsageResult = await pool.query(
+    `WITH sold_products AS (
+       SELECT unnest(productids) AS productid
+       FROM order_history
+       WHERE date BETWEEN $1::date AND $2::date
+     )
+     SELECT
+       ingredient AS "ingredientName",
+       COUNT(*)::int AS usage
+     FROM sold_products sp
+     JOIN menu m ON m.productid = sp.productid
+     CROSS JOIN LATERAL unnest(m.ingredients::text[]) AS ingredient
+     GROUP BY ingredient
+     ORDER BY usage DESC, ingredient ASC`,
+    [startDate, endDate]
+  );
+
+  const salesByItemResult = await pool.query(
+    `WITH sold_products AS (
+       SELECT unnest(productids) AS productid
+       FROM order_history
+       WHERE date BETWEEN $1::date AND $2::date
+     )
+     SELECT
+       m.productid AS "productId",
+       m.itemname AS "itemName",
+       COUNT(*)::int AS "itemsSold",
+       ROUND(SUM((m.price * (1 - COALESCE(m.discount, 0)))::numeric), 2) AS revenue
+     FROM sold_products sp
+     JOIN menu m ON m.productid = sp.productid
+     GROUP BY m.productid, m.itemname
+     ORDER BY revenue DESC, m.itemname ASC`,
+    [startDate, endDate]
+  );
+
+  const categoryRevenueResult = await pool.query(
+    `WITH sold_products AS (
+       SELECT unnest(productids) AS productid
+       FROM order_history
+       WHERE date BETWEEN $1::date AND $2::date
+     )
+     SELECT
+       m.category,
+       ROUND(SUM((m.price * (1 - COALESCE(m.discount, 0)))::numeric), 2) AS revenue,
+       COUNT(*)::int AS sold
+     FROM sold_products sp
+     JOIN menu m ON m.productid = sp.productid
+     GROUP BY m.category
+     ORDER BY revenue DESC, m.category ASC`,
+    [startDate, endDate]
+  );
+
+  return {
+    productUsage: productUsageResult.rows.map((row) => ({
+      ingredientName: row.ingredientName,
+      usage: Number(row.usage),
+    })),
+    salesByItem: salesByItemResult.rows.map((row) => ({
+      productId: Number(row.productId),
+      itemName: row.itemName,
+      itemsSold: Number(row.itemsSold),
+      revenue: toMoney(row.revenue),
+    })),
+    revenueByCategory: categoryRevenueResult.rows.map((row) => ({
+      category: row.category,
+      revenue: toMoney(row.revenue),
+      sold: Number(row.sold),
+    })),
+  };
+}
+
+async function fetchReportTotalsByDate(targetDate) {
+  const totalsResult = await pool.query(
+    `SELECT
+       COUNT(*)::int AS transactions,
+       COALESCE(SUM(numitems), 0)::int AS "itemsCount",
+       COALESCE(ROUND(SUM(price)::numeric, 2), 0) AS "salesTotal",
+       COALESCE(ROUND(AVG(price)::numeric, 2), 0) AS "averagePrice",
+       COALESCE(ROUND(SUM(CASE WHEN UPPER(payment_type) = 'CASH' THEN price ELSE 0 END)::numeric, 2), 0) AS cash,
+       COALESCE(ROUND(SUM(CASE WHEN UPPER(payment_type) = 'CARD' THEN price ELSE 0 END)::numeric, 2), 0) AS card
+     FROM order_history
+     WHERE date = $1::date`,
+    [targetDate]
+  );
+
+  const row = totalsResult.rows[0] || {};
+  return {
+    transactions: Number(row.transactions || 0),
+    itemsCount: Number(row.itemsCount || 0),
+    salesTotal: toMoney(row.salesTotal),
+    averagePrice: toMoney(row.averagePrice),
+    cash: toMoney(row.cash),
+    card: toMoney(row.card),
+  };
+}
+
 // Getting all table information for inventory
 router.get("/", async (req, res) => {
   try {
@@ -321,6 +445,171 @@ router.delete("/menu/:productId", async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Failed to remove menu item." });
+  }
+});
+
+// Analytics overview for a date range
+router.get("/analytics/overview", async (req, res) => {
+  const { from, to } = req.query;
+  const range = normalizeDateRange(from, to);
+  if (range.error) {
+    return res.status(400).json({ error: range.error });
+  }
+
+  try {
+    const data = await fetchRangeAnalytics(range.start, range.end);
+    return res.json({
+      from: range.start,
+      to: range.end,
+      ...data,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Failed to load analytics data." });
+  }
+});
+
+// X report: current-day sales activity by hour with no side effects
+router.get("/reports/x", async (_req, res) => {
+  try {
+    const dateResult = await pool.query("SELECT CURRENT_DATE::text AS today");
+    const businessDate = dateResult.rows[0].today;
+
+    const hourlyResult = await pool.query(
+      `SELECT
+         EXTRACT(HOUR FROM time)::int AS hour,
+         COUNT(*)::int AS transactions,
+         COALESCE(SUM(numitems), 0)::int AS "itemsCount",
+         COALESCE(ROUND(SUM(price)::numeric, 2), 0) AS "salesTotal",
+         COALESCE(ROUND(AVG(price)::numeric, 2), 0) AS "averagePrice",
+         COALESCE(ROUND(SUM(CASE WHEN UPPER(payment_type) = 'CASH' THEN price ELSE 0 END)::numeric, 2), 0) AS cash,
+         COALESCE(ROUND(SUM(CASE WHEN UPPER(payment_type) = 'CARD' THEN price ELSE 0 END)::numeric, 2), 0) AS card
+       FROM order_history
+       WHERE date = $1::date
+       GROUP BY hour
+       ORDER BY hour ASC`,
+      [businessDate]
+    );
+
+    const totals = await fetchReportTotalsByDate(businessDate);
+
+    return res.json({
+      reportType: "X",
+      businessDate,
+      totals,
+      hourly: hourlyResult.rows.map((row) => ({
+        hour: Number(row.hour),
+        transactions: Number(row.transactions),
+        itemsCount: Number(row.itemsCount),
+        salesTotal: toMoney(row.salesTotal),
+        averagePrice: toMoney(row.averagePrice),
+        cash: toMoney(row.cash),
+        card: toMoney(row.card),
+      })),
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Failed to generate X report." });
+  }
+});
+
+// Z report: end-of-day totals with one-run-per-day side effect
+router.post("/reports/z", async (_req, res) => {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    await client.query(
+      `CREATE TABLE IF NOT EXISTS z_report_audit (
+         business_date DATE PRIMARY KEY,
+         generated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+         transactions INT NOT NULL,
+         itemscount INT NOT NULL,
+         salestotal NUMERIC(12,2) NOT NULL,
+         averageprice NUMERIC(12,2) NOT NULL,
+         cash NUMERIC(12,2) NOT NULL,
+         card NUMERIC(12,2) NOT NULL
+       )`
+    );
+
+    const dateResult = await client.query("SELECT CURRENT_DATE::text AS today");
+    const businessDate = dateResult.rows[0].today;
+
+    const existing = await client.query(
+      "SELECT business_date, generated_at FROM z_report_audit WHERE business_date = $1::date",
+      [businessDate]
+    );
+
+    if (existing.rowCount > 0) {
+      await client.query("ROLLBACK");
+      return res.status(409).json({
+        error: "Z report has already been run for today.",
+        businessDate,
+        generatedAt: existing.rows[0].generated_at,
+      });
+    }
+
+    const totalsResult = await client.query(
+      `SELECT
+         COUNT(*)::int AS transactions,
+         COALESCE(SUM(numitems), 0)::int AS itemscount,
+         COALESCE(ROUND(SUM(price)::numeric, 2), 0) AS salestotal,
+         COALESCE(ROUND(AVG(price)::numeric, 2), 0) AS averageprice,
+         COALESCE(ROUND(SUM(CASE WHEN UPPER(payment_type) = 'CASH' THEN price ELSE 0 END)::numeric, 2), 0) AS cash,
+         COALESCE(ROUND(SUM(CASE WHEN UPPER(payment_type) = 'CARD' THEN price ELSE 0 END)::numeric, 2), 0) AS card
+       FROM order_history
+       WHERE date = $1::date`,
+      [businessDate]
+    );
+
+    const totals = totalsResult.rows[0];
+
+    const insert = await client.query(
+      `INSERT INTO z_report_audit (
+         business_date,
+         transactions,
+         itemscount,
+         salestotal,
+         averageprice,
+         cash,
+         card
+       ) VALUES ($1::date, $2, $3, $4, $5, $6, $7)
+       RETURNING business_date, generated_at, transactions, itemscount, salestotal, averageprice, cash, card`,
+      [
+        businessDate,
+        Number(totals.transactions || 0),
+        Number(totals.itemscount || 0),
+        toMoney(totals.salestotal),
+        toMoney(totals.averageprice),
+        toMoney(totals.cash),
+        toMoney(totals.card),
+      ]
+    );
+
+    await client.query("COMMIT");
+
+    const row = insert.rows[0];
+    return res.json({
+      reportType: "Z",
+      businessDate: row.business_date,
+      generatedAt: row.generated_at,
+      totals: {
+        transactions: Number(row.transactions),
+        itemsCount: Number(row.itemscount),
+        salesTotal: toMoney(row.salestotal),
+        averagePrice: toMoney(row.averageprice),
+        cash: toMoney(row.cash),
+        card: toMoney(row.card),
+      },
+      sideEffect: "Day totals are now closed for this business date.",
+    });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error(err);
+    return res.status(500).json({ error: "Failed to generate Z report." });
+  } finally {
+    client.release();
   }
 });
 
