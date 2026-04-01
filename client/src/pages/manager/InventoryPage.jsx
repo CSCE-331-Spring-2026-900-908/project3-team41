@@ -31,6 +31,7 @@ export default function InventoryPage() {
 
   useEffect(() => { reload(); }, [reload]);
 
+  // Add items to inventory
   const handleAddItem = async (name, qty, price) => {
     await fetch(`${API_URL}/inventory`, {
       method: "POST",
@@ -40,12 +41,14 @@ export default function InventoryPage() {
     await reload();
   };
 
+  // Remove items from inventory
   const handleRemove = async (inventoryId) => {
     if (!window.confirm("Remove this item?")) return;
     await fetch(`${API_URL}/inventory/${inventoryId}`, { method: "DELETE" });
     await reload();
   };
 
+  // Restock inventory items
   const handleRestock = async () => {
     for (const item of Object.values(selectedForOrder)) {
       await fetch(`${API_URL}/inventory/${item.inventoryId}/restock`, {
@@ -60,6 +63,7 @@ export default function InventoryPage() {
     await reload();
   };
 
+  // Shows which inventory item is selected
   const toggleSelection = (item) => {
     setSelectedForOrder((prev) => {
       const next = { ...prev };
@@ -72,6 +76,7 @@ export default function InventoryPage() {
   const fmt = (n) =>
     Number(n).toLocaleString("en-US", { style: "currency", currency: "USD" });
 
+  // Actual layout of page
   return (
     <div className="manager-page">
       <div className="manager-header">
