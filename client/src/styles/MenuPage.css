@@ -10,7 +10,7 @@
 
 .menu-item-button {
   cursor: pointer;
-  border: none;
+  /* border: none; */
   text-align: left;
   background: white;
 }
